@@ -22,26 +22,28 @@ class Minute
 
     Minute(int const value);
 
+    Minute & operator =(Minute const & other);
+
     int get() const;
 
-    bool operator ==(Minute const& rhs) const;
-    bool operator !=(Minute const& rhs) const;
-    bool operator <(Minute const& rhs) const;
-    bool operator >(Minute const& rhs) const;
-    bool operator <=(Minute const& rhs) const;
-    bool operator >=(Minute const& rhs) const;
+    bool operator ==(Minute const & rhs) const;
+    bool operator !=(Minute const & rhs) const;
+    bool operator <(Minute const & rhs) const;
+    bool operator >(Minute const & rhs) const;
+    bool operator <=(Minute const & rhs) const;
+    bool operator >=(Minute const & rhs) const;
 
-    Minute operator +(Minute const& rhs) const;
+    Minute operator +(Minute const & rhs) const;
 
-    Minute operator -(Minute const& rhs) const;
+    Minute operator -(Minute const & rhs) const;
 
-    Minute operator +(Hour const& rhs) const;
+    Minute operator +(Hour const & rhs) const;
 
-    Minute operator -(Hour const& rhs) const;
+    Minute operator -(Hour const & rhs) const;
   private:
-    int const m_value;
+    int m_value;
 };
 
-std::ostream & operator <<(std::ostream & stream, Minute const& minute);
+std::ostream & operator <<(std::ostream & stream, Minute const & minute);
 
 }

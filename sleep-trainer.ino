@@ -5,24 +5,27 @@
 #include "Period.hpp"
 #include "Time.hpp"
 #include "WallClock.hpp"
+#include "LedStrip.hpp"
+#include "Pin.hpp"
+#include "Interval.hpp"
+#include "LedArray.hpp"
+#include "LedDescriptor.hpp"
 
-#include <NTPClient.h>
+#include <NTPClient.h> // install: NTPClient
 #include <WiFiUdp.h>
-#include <WiFiManager.h> // https://github.com/tzapu/WiFiManager
-#include <TimeLib.h>
+#include <WiFiManager.h> // install: WiFiManager tzapu ; https://github.com/tzapu/WiFiManager
+#include <TimeLib.h> // install: Time
+//#include <Adafruit_NeoPixel.h> // install: Adafruit Neopixel
 
 #include <compare>
 #include <sstream>
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
-int const START_HOURS = 19;
-int const START_MINUTES = 0;
-int const STOP_HOURS = 6;
-int const STOP_MINUTES = 0;
 
-int const NUM_LEDS = 15;
-
+//int const NUM_LEDS = 3;
+int const LED_PIN = 2;
+int const BUTTON_PIN = 5;
 
 std::ostringstream STREAM;
 uint32_t LOOPS;
@@ -31,14 +34,8 @@ uint32_t const MAX_LOOPS = 10;
 
 namespace sleep
 {
-WallClock const NIGHT_START(19, 0);
-WallClock const NIGHT_STOP(6, 0);
 
-Minute const OFFSET_BEFORE(30);
-Minute const OFFSET_AFTER(60);
-
-WallClock const BEFORE_NIGHT(NIGHT_START - OFFSET_BEFORE);
-WallClock const AFTER_NIGHT(NIGHT_STOP + OFFSET_AFTER);
+LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 20U);
 
 static void PrintAndClearStream()
 {
@@ -60,81 +57,200 @@ static void Test()
 
 #endif // #ifdef RUN_TESTS
 
-bool isNight()
+static void SillyTest()
 {
-  int const hours = timeClient.getHours();
-  int const minutes = timeClient.getMinutes();
-
-  return ((hours == START_HOURS and minutes >= START_MINUTES) or (hours > START_HOURS))
-         or ((hours == STOP_HOURS and minutes < STOP_MINUTES) or (hours < STOP_HOURS));
+  sleep::WallClock c1(11, 0);
+  sleep::WallClock c2(12, 0);
+  sleep::WallClock c3(13, 0);
+  sleep::Interval i1(c1, c2);
+  sleep::Interval i2(c2, c1);
+  if (i1.contains(c1))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  if (i1.contains(c2))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  if (i1.contains(c3))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  STREAM << "\n";
+  if (i2.contains(c1))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  if (i2.contains(c2))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  if (i2.contains(c3))
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  sleep::PrintAndClearStream();
 }
 
-static void PrintDebug()
+// Day: all dark
+//      .....
+// Before night: from 1 to all leds
+//      1....
+//      11...
+//      111..
+//      1111.
+//      11111
+// Night: last led always on ; from 0 to all but last two leds
+//      ....2
+//      3...2
+//      33..2
+//      333.2
+// After night: all leds on
+//      44444
+static void SetupLedStrip()
 {
-  timeClient.update();
-
-  Time const now(timeClient.getEpochTime());
-
-  Serial.println(timeClient.getFormattedTime());
-  Serial.print("is night? ");
-  Serial.println(isNight());
-  STREAM << now.getPeriod();
+  Serial.println("SetupLedStrip");
+  WallClock const & dayBegin = WallClock::Get(Period::Day);
+  STREAM << "SetupLedStrip dayBegin = " << dayBegin;
+  PrintAndClearStream();
+  WallClock const & beforeNightBegin = WallClock::Get(Period::BeforeNight);
+  STREAM << "SetupLedStrip beforeNightBegin = " << beforeNightBegin;
+  PrintAndClearStream();
+  WallClock const & nightBegin = WallClock::Get(Period::Night);
+  STREAM << "SetupLedStrip nightBegin = " << nightBegin;
+  PrintAndClearStream();
+  WallClock const & afterNightBegin = WallClock::Get(Period::AfterNight);
+  STREAM << "SetupLedStrip afterNightBegin = " << afterNightBegin;
   PrintAndClearStream();
 
-  Minute const dayDuration = (BEFORE_NIGHT - AFTER_NIGHT);
-  STREAM << "Day          : [ " << AFTER_NIGHT << " - " << BEFORE_NIGHT << " ] => " << dayDuration;
+  Interval const beforeNight(beforeNightBegin, nightBegin);
+  Interval const night(nightBegin, afterNightBegin);
+
+  double const factorBeforeNight = (double)beforeNight.duration().get() / (double)(NUM_LEDS);
+  STREAM << "factorBeforeNight = " << factorBeforeNight;
+  double const factorNight = (double)night.duration().get() / (double)(NUM_LEDS - 1);
+  STREAM << " ; factorNight = " << factorNight;
   PrintAndClearStream();
-  Minute const beforeNightDuration = (NIGHT_START - BEFORE_NIGHT);
-  STREAM << "Before night : [ " << BEFORE_NIGHT << " - " << NIGHT_START << " ] => " << beforeNightDuration;
-  PrintAndClearStream();
-  Minute const nightDuration = (NIGHT_STOP - NIGHT_START);
-  STREAM << "Night        : [ " << NIGHT_START << " - " << NIGHT_STOP << " ] => " << nightDuration;
-  PrintAndClearStream();
-  Minute const afterNightDuration = (AFTER_NIGHT - NIGHT_STOP);
-  STREAM << "After night  : [ ";
-  STREAM << NIGHT_STOP;
-  STREAM << " - ";
-  STREAM << AFTER_NIGHT;
-  STREAM << " ] => ";
-  STREAM << afterNightDuration;
-  PrintAndClearStream();
-  double const factor = (double)nightDuration.get() / (double)(NUM_LEDS - 1);
-  STREAM << "factor = " << factor;
+  WallClock lastClock = beforeNightBegin;
+  LedArray leds;
+  Interval interval(dayBegin, beforeNightBegin);
+  LED_STRIP.addChange(LedDescriptor(interval, leds));
+  STREAM << interval << " : " << 0 << " LED(s)" << leds;
   PrintAndClearStream();
   for (size_t i = 0 ; i < NUM_LEDS ; ++i)
   {
-    STREAM << (NIGHT_START + Minute(i * factor)) << " : " << i << " LED(s)";
+    leds.set(i, LedStrip::ColourBeforeNight);
+    WallClock const clock = beforeNightBegin + Minute((i + 1) * factorBeforeNight);
+    interval = Interval(lastClock, clock);
+    STREAM << interval << " : " << (i + 1) << " LED(s)" << leds;
     PrintAndClearStream();
+    LED_STRIP.addChange(LedDescriptor(interval, leds));
+    lastClock = clock;
   }
-
-
-  if (sleep::Period::Day == now.getPeriod())
+  leds.clear();
+  leds.set(NUM_LEDS - 1, LedStrip::ColourTarget);
+  lastClock = nightBegin;
+  for (size_t i = 0 ; i < NUM_LEDS - 1 ; ++i)
   {
-
+    WallClock const clock = nightBegin + Minute((i + 1) * factorNight);
+    interval = Interval(lastClock, clock);
+    STREAM << interval << " : " << i << " LED(s)" << leds;
+    PrintAndClearStream();
+    LED_STRIP.addChange(LedDescriptor(interval, leds));
+    lastClock = clock;
+    leds.set(i, LedStrip::ColourNight);
   }
-
-  Serial.println(timeClient.getHours());
+  leds.fill(LedStrip::ColourAfterNight);
+  interval = Interval(afterNightBegin, dayBegin);
+  LED_STRIP.addChange(LedDescriptor(interval, leds));
+  STREAM << interval << " : " << (int)NUM_LEDS << " LED(s)" << leds;
+  PrintAndClearStream();
+  STREAM << "LED_STRIP:\n" << LED_STRIP;
+  PrintAndClearStream();
 }
 
-static sleep::Period GetPeriod(int const hours, int const minutes)
+static void Demo()
 {
-  if (((hours == START_HOURS and minutes >= START_MINUTES) or (hours > START_HOURS))
-      or ((hours == STOP_HOURS and minutes < STOP_MINUTES) or (hours < STOP_HOURS)))
+  Serial.println("Demo start");
+  // 72s -> 72000ms
+  timeClient.update();
+
+  // Duration of the demo (real time)
+  unsigned long demoDurationMillis = 72 * 1000;
+
+  unsigned long nowMillis = 0;
+  unsigned long deltaMillis = 0;
+  int deltaFakeMinutes = 0;
+  unsigned long const startMillis = millis();
+  unsigned long const endMillis = startMillis + demoDurationMillis;
+  // Simulated begin time
+  WallClock const beginDemo = WallClock::Get(Period::BeforeNight) - Minute(60);
+  // Simulated end time
+  WallClock const endDemo = WallClock::Get(Period::Day) + Minute(60);
+  int const beginDemoMinutes = beginDemo.totalMinutes().get();
+
+  double const factor = (double)(endDemo - beginDemo).get() / (double)demoDurationMillis;
+  Serial.print("factor: ");
+  Serial.println(factor);
+
+  Serial.print("begin: ");
+  Serial.print(startMillis);
+  Serial.println(" ms");
+  Serial.print("end: ");
+  Serial.print(endMillis);
+  Serial.println(" ms");
+  WallClock fakeWallClock(beginDemo);
+  do
   {
-    return sleep::Period::Night;
-  }
-  return sleep::Period::Day;
+    delay(100);
+    nowMillis = millis();
+    deltaMillis = nowMillis - startMillis;
+    deltaFakeMinutes = deltaMillis * factor;
+    fakeWallClock = WallClock(Minute(beginDemoMinutes + deltaFakeMinutes));
+    if (LED_STRIP.update(fakeWallClock))
+    {
+      STREAM << "At " << nowMillis << "ms " << LED_STRIP.getActiveLeds();
+      PrintAndClearStream();
+    }
+  } while (nowMillis < endMillis);
 }
 
 } // namespace sleep
 
 void setup()
 {
+  Serial.begin(115200);
   WiFi.mode(WIFI_STA); // explicitly set mode, esp defaults to STA+AP
   // it is a good practice to make sure your code sets wifi mode how you want it.
-
-  // put your setup code here, to run once:
-  Serial.begin(115200);
+  // Add a delay to make sure that the connection is open properly
+  delay(1000);
+  Serial.println("START");
+  sleep::SillyTest();
+  sleep::SetupLedStrip();
 
   //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wm;
@@ -153,31 +269,53 @@ void setup()
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
   res = wm.autoConnect("AutoConnectAP", "password"); // password protected ap
 
-  if (!res) {
+  if (!res)
+  {
     Serial.println("Failed to connect");
     // ESP.restart();
   }
-  else {
+  else
+  {
     //if you get here you have connected to the WiFi
     Serial.println("connected...yeey :)");
     timeClient.begin();
   }
 
-  sleep::PrintDebug();
+  bool const isDay = true;
+  if (isDay)
+  {
+    // show a demo
+    sleep::Demo();
+  }
+  // Button setup
+  pinMode(BUTTON_PIN, INPUT);
 }
+
+bool SHOW_DEMO = false;
 
 void loop()
 {
 #ifdef RUN_TESTS
   sleep::Test();
-#else // #ifdef RUN_TESTS
+#else // #ifndef RUN_TESTS
   timeClient.update();
 
+  int reading = digitalRead(BUTTON_PIN);
+  if (reading == HIGH)
+  {
+    SHOW_DEMO = true;
+  }
+
   delay(1000);
-#endif // #ifdef RUN_TESTS
+#endif // #ifndef RUN_TESTS
   if (++LOOPS > MAX_LOOPS)
   {
-    sleep::PrintDebug();
+    Serial.println("bip");
+    if (SHOW_DEMO)
+    {
+      sleep::Demo();
+      SHOW_DEMO = false;
+    }
     LOOPS = 0;
   }
 }

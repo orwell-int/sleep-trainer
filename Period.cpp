@@ -5,7 +5,7 @@
 namespace sleep
 {
 
-std::ostream & operator <<(std::ostream & stream, Period const& period)
+std::ostream & operator <<(std::ostream & stream, Period const & period)
 {
   switch (period)
   {

@@ -20,23 +20,25 @@ class Hour
 
     Hour(int const value);
 
+    Hour & operator =(Hour const & other);
+
     int get() const;
 
     Minute minutes() const;
 
-    bool operator ==(Hour const& rhs) const;
-    bool operator !=(Hour const& rhs) const;
-    bool operator <(Hour const& rhs) const;
-    bool operator >(Hour const& rhs) const;
-    bool operator <=(Hour const& rhs) const;
-    bool operator >=(Hour const& rhs) const;
+    bool operator ==(Hour const & rhs) const;
+    bool operator !=(Hour const & rhs) const;
+    bool operator <(Hour const & rhs) const;
+    bool operator >(Hour const & rhs) const;
+    bool operator <=(Hour const & rhs) const;
+    bool operator >=(Hour const & rhs) const;
 
-    Hour operator +(Hour const& rhs) const;
+    Hour operator +(Hour const & rhs) const;
 
-    Hour operator -(Hour const& rhs) const;
+    Hour operator -(Hour const & rhs) const;
 
   private:
-    int const m_value;
+    int m_value;
 };
 
 }

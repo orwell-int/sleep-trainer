@@ -44,32 +44,32 @@ Period Time::getPeriod() const
   return Period::Day;
 }
 
-bool Time::operator ==(Time const& rhs) const
+bool Time::operator ==(Time const & rhs) const
 {
   return m_epoch == rhs.m_epoch;
 }
 
-bool Time::operator !=(Time const& rhs) const
+bool Time::operator !=(Time const & rhs) const
 {
   return m_epoch != rhs.m_epoch;
 }
 
-bool Time::operator <(Time const& rhs) const
+bool Time::operator <(Time const & rhs) const
 {
   return m_epoch < rhs.m_epoch;
 }
 
-bool Time::operator >(Time const& rhs) const
+bool Time::operator >(Time const & rhs) const
 {
   return m_epoch > rhs.m_epoch;
 }
 
-bool Time::operator <=(Time const& rhs) const
+bool Time::operator <=(Time const & rhs) const
 {
   return m_epoch <= rhs.m_epoch;
 }
 
-bool Time::operator >=(Time const& rhs) const
+bool Time::operator >=(Time const & rhs) const
 {
   return m_epoch >= rhs.m_epoch;
 }

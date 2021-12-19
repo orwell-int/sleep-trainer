@@ -15,6 +15,6 @@ enum class Period
   AfterNight
 };
 
-std::ostream & operator <<(std::ostream & stream, Period const& period);
+std::ostream & operator <<(std::ostream & stream, Period const & period);
 
 }
