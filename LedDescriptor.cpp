@@ -26,11 +26,6 @@ bool LedDescriptor::contains(WallClock const & wallClock) const
   return m_interval.contains(wallClock);
 }
 
-//Period LedDescriptor::getPeriod() const
-//{
-//  return m_interval.getPeriod();
-//}
-
 std::ostream & operator <<(std::ostream & stream, LedDescriptor const & ledDescriptor)
 {
   stream << ledDescriptor.m_interval << " -> " << ledDescriptor.m_leds;
