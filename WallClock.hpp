@@ -38,7 +38,7 @@ class WallClock
 
     WallClock(Hour const & hours, Minute const & minutes);
     WallClock(Minute const & totalMinutes);
-    WallClock(Time const & time);
+    WallClock(int const epoch);
 
     WallClock(WallClock const & other);
 

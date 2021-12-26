@@ -3,9 +3,10 @@
 #include <iomanip>
 #include <ostream>
 
+#include <TimeLib.h>
+
 #include "Hour.hpp"
 #include "Minute.hpp"
-#include "Time.hpp"
 
 namespace sleep
 {
@@ -31,9 +32,10 @@ WallClock::WallClock(Minute const & totalMinutes)
 {
 }
 
-WallClock::WallClock(Time const& time)
-  : WallClock(time.getHours(), time.getMinutes())
-{  
+WallClock::WallClock(int const epoch)
+  : m_hours(hour(epoch))
+  , m_minutes(minute(epoch))
+{
 }
 
 WallClock::WallClock(WallClock const& other)
