@@ -7,6 +7,7 @@
 
 #include "Hour.hpp"
 #include "Minute.hpp"
+#include "Interval.hpp"
 
 namespace sleep
 {
@@ -67,6 +68,19 @@ Minute const& WallClock::minutes() const
 Minute WallClock::totalMinutes() const
 {
   return Minute(m_hours.get() * 60) + m_minutes;
+}
+
+Period WallClock::getPeriod() const
+{
+  for (auto const period: Period_All)
+  {
+    if (Interval::Get(period).contains(*this))
+    {
+      return period;
+    }
+  }
+  // there is always a matching period
+  assert(false);
 }
 
 WallClock WallClock::operator +(Hour const & hour) const

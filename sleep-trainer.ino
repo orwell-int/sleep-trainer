@@ -147,8 +147,8 @@ static void SetupLedStrip()
   STREAM << "SetupLedStrip afterNightBegin = " << afterNightBegin;
   PrintAndClearStream();
 
-  Interval const beforeNight(beforeNightBegin, nightBegin);
-  Interval const night(nightBegin, afterNightBegin);
+  Interval const & beforeNight = Interval::Get(Period::BeforeNight);
+  Interval const & night = Interval::Get(Period::Night);
 
   double const factorBeforeNight = (double)beforeNight.duration().get() / (double)(NUM_LEDS);
   STREAM << "factorBeforeNight = " << factorBeforeNight;
@@ -281,7 +281,8 @@ void setup()
     timeClient.begin();
   }
 
-  bool const isDay = true;
+  sleep::WallClock const clock(timeClient.getEpochTime());
+  bool const isDay = clock.getPeriod() == sleep::Period::Day;
   if (isDay)
   {
     // show a demo
@@ -298,8 +299,6 @@ void loop()
 #ifdef RUN_TESTS
   sleep::Test();
 #else // #ifndef RUN_TESTS
-  timeClient.update();
-
   int reading = digitalRead(BUTTON_PIN);
   if (reading == HIGH)
   {
@@ -307,15 +306,18 @@ void loop()
   }
 
   delay(1000);
-#endif // #ifndef RUN_TESTS
+  timeClient.update();
+  sleep::WallClock const clock(timeClient.getEpochTime());
   if (++LOOPS > MAX_LOOPS)
   {
     Serial.println("bip");
-    if (SHOW_DEMO)
+    if (SHOW_DEMO and clock.getPeriod() == sleep::Period::Day)
     {
       sleep::Demo();
       SHOW_DEMO = false;
     }
     LOOPS = 0;
   }
+  sleep::LED_STRIP.update(clock);
+#endif // #ifndef RUN_TESTS
 }
