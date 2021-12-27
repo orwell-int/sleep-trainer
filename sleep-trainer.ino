@@ -64,6 +64,27 @@ static void SillyTest()
   sleep::WallClock c3(13, 0);
   sleep::Interval i1(c1, c2);
   sleep::Interval i2(c2, c1);
+  Serial.print("durations: ");
+  Serial.print(i1.duration().get());
+  Serial.print(" ");
+  Serial.println(i2.duration().get());
+  if (sleep::Minute(60) == i1.duration())
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  if (sleep::Minute(60 * 23) == i2.duration())
+  {
+    STREAM << "1";
+  }
+  else
+  {
+    STREAM << "0";
+  }
+  sleep::PrintAndClearStream();
   if (i1.contains(c1))
   {
     STREAM << "1";
