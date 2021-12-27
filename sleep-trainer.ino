@@ -139,12 +139,12 @@ static void SillyTest()
 
 // Day: all dark
 //      .....
-// Before night: from 1 to all leds
-//      1....
-//      11...
-//      111..
-//      1111.
+// Before night: from all leds to one led
 //      11111
+//      1111.
+//      111..
+//      11...
+//      1....
 // Night: last led always on ; from 0 to all but last two leds
 //      ....2
 //      3...2
@@ -182,15 +182,16 @@ static void SetupLedStrip()
   LED_STRIP.addChange(LedDescriptor(interval, leds));
   STREAM << interval << " : " << 0 << " LED(s)" << leds;
   PrintAndClearStream();
+  leds.fill(LedStrip::ColourBeforeNight);
   for (size_t i = 0 ; i < NUM_LEDS ; ++i)
   {
-    leds.set(i, LedStrip::ColourBeforeNight);
     WallClock const clock = beforeNightBegin + Minute((i + 1) * factorBeforeNight);
     interval = Interval(lastClock, clock);
-    STREAM << interval << " : " << (i + 1) << " LED(s)" << leds;
+    STREAM << interval << " : " << (NUM_LEDS - 1) << " LED(s)" << leds;
     PrintAndClearStream();
     LED_STRIP.addChange(LedDescriptor(interval, leds));
     lastClock = clock;
+    leds.set(NUM_LEDS - (i + 1), LedStrip::Black);
   }
   leds.clear();
   leds.set(NUM_LEDS - 1, LedStrip::ColourTarget);
