@@ -34,6 +34,8 @@ public:
   LedDescriptor const & getActiveLeds() const;
 
   static uint32_t const Black;
+  static uint32_t const Red;
+  static uint32_t const Green;
   static uint32_t const ColourDay;
   static uint32_t const ColourBeforeNight;
   static uint32_t const ColourNight;
