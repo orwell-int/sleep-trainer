@@ -35,7 +35,7 @@ uint32_t const MAX_LOOPS = 10;
 namespace sleep
 {
 
-LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 2U);
+LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 3U);
 
 static void PrintAndClearStream()
 {
