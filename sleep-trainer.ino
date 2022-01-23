@@ -35,7 +35,7 @@ uint32_t const MAX_LOOPS = 10;
 namespace sleep
 {
 
-LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 20U);
+LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 12U);
 
 static void PrintAndClearStream()
 {
@@ -289,6 +289,7 @@ void setup()
   bool res;
   // res = wm.autoConnect(); // auto generated AP name from chipid
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
+  // default ip is 192.168.4.1
   res = wm.autoConnect("AutoConnectAP", "password"); // password protected ap
 
   if (!res)
