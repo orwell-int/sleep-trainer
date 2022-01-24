@@ -15,7 +15,7 @@
 #include <WiFiUdp.h>
 #include <WiFiManager.h> // install: WiFiManager tzapu ; https://github.com/tzapu/WiFiManager
 #include <TimeLib.h> // install: Time
-//#include <Adafruit_NeoPixel.h> // install: Adafruit Neopixel
+#include <Adafruit_NeoPixel.h> // install: Adafruit Neopixel
 
 #include <compare>
 #include <sstream>
@@ -30,7 +30,6 @@ int const BUTTON_PIN = 5;
 std::ostringstream STREAM;
 uint32_t LOOPS;
 uint32_t const MAX_LOOPS = 10;
-
 
 namespace sleep
 {
@@ -274,6 +273,11 @@ void setup()
   sleep::SillyTest();
   sleep::SetupLedStrip();
 
+  sleep::LedArray leds;
+  uint32_t const ColourNotConnected = Adafruit_NeoPixel::Color(25, 7, 7);
+  leds.fill(ColourNotConnected);
+  sleep::LED_STRIP.lightLeds(leds);
+
   //WiFiManager, Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wm;
 
@@ -301,10 +305,20 @@ void setup()
     //if you get here you have connected to the WiFi
     Serial.println("connected...yeey :)");
     timeClient.begin();
+
+    leds.fill(Adafruit_NeoPixel::Color(7, 25, 7));
+    sleep::LED_STRIP.lightLeds(leds);
+    delay(750);
+    leds.fill(sleep::LedStrip::Black);
+    sleep::LED_STRIP.lightLeds(leds);
   }
 
+  timeClient.update();
   sleep::WallClock const clock(timeClient.getEpochTime());
   bool const isDay = clock.getPeriod() == sleep::Period::Day;
+  STREAM << "Period in setup: " << clock.getPeriod();
+  sleep::PrintAndClearStream();
+
   if (isDay)
   {
     // show a demo
