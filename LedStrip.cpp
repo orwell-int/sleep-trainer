@@ -35,10 +35,12 @@ public:
 
 uint32_t const LedStrip::Black = Adafruit_NeoPixel::Color(0, 0, 0);
 uint32_t const LedStrip::ColourDay = Adafruit_NeoPixel::Color(0, 0, 0);
-uint32_t const LedStrip::ColourBeforeNight = Adafruit_NeoPixel::Color(50, 30, 2);
-uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(15, 2, 40);
-uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(2, 25, 50);
-uint32_t const LedStrip::ColourTarget = Adafruit_NeoPixel::Color(20, 20, 1);
+uint32_t const LedStrip::ColourBeforeNight = Adafruit_NeoPixel::Color(5, 3, 1);
+uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(1, 1, 3);
+uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(1, 5, 2);
+uint32_t const LedStrip::ColourTarget = Adafruit_NeoPixel::Color(2, 2, 1);
+uint32_t const LedStrip::ColourNotConnected = Adafruit_NeoPixel::Color(5, 1, 0);
+uint32_t const LedStrip::ColourConnected = Adafruit_NeoPixel::Color(1, 5, 0);
 
 LedStrip::Internal::Internal(uint8_t const nbLeds, Pin const & pin, uint8_t const brightness)
   : m_ledStrip(nbLeds, pin.get(), NEO_GRB + NEO_KHZ800)

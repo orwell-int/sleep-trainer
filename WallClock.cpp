@@ -16,7 +16,7 @@ namespace sleep
 ClockConfig WallClock::m_clockConfig =
 {
   Hour(19), Minute(0),
-  Hour(6), Minute(0),
+  Hour(5), Minute(45),
   Minute(30),
   Minute(60)
 };

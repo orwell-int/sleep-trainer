@@ -39,6 +39,8 @@ public:
   static uint32_t const ColourNight;
   static uint32_t const ColourAfterNight;
   static uint32_t const ColourTarget;
+  static uint32_t const ColourNotConnected;
+  static uint32_t const ColourConnected;
 
   friend std::ostream& operator<< (std::ostream & stream, LedStrip const & ledStrip);
 private:
