@@ -1,4 +1,4 @@
-#include "WallClock.hpp"
+#include "Hour.hpp"
 
 namespace sleep
 {

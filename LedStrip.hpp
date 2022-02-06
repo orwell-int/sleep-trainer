@@ -8,6 +8,7 @@
 namespace sleep
 {
 
+class DayPattern;
 class Pin;
 class LedDescriptor;
 class LedArray;
@@ -21,6 +22,7 @@ public:
   // Make sure all leds are off
   ~LedStrip();
   void addChange(LedDescriptor const & ledDescriptor);
+  void addChange(LedDescriptor const & ledDescriptor, DayPattern const & dayPattern, uint8_t const priority);
 
   // Turn all leds off
   void shutdown();

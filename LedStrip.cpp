@@ -1,6 +1,7 @@
 #include "LedStrip.hpp"
 
 #include <vector>
+#include <map>
 #include <ostream>
 
 #include <Adafruit_NeoPixel.h> // install: Adafruit Neopixel
@@ -8,6 +9,7 @@
 #include "WallClock.hpp"
 #include "LedDescriptor.hpp"
 #include "Pin.hpp"
+#include "DayPattern.hpp"
 
 namespace
 {
@@ -28,6 +30,7 @@ class LedStrip::Internal
 {
 public:
   Internal(uint8_t const nbLeds, Pin const & pin, uint8_t const brightness);
+  std::map< uint8_t, std::map< DayPattern, std::vector< LedDescriptor > > > m_advancedLedDescriptors;
   std::vector< LedDescriptor > m_ledDescriptors;
   std::vector< LedDescriptor >::const_iterator m_currentStep;
   Adafruit_NeoPixel m_ledStrip;
@@ -62,6 +65,12 @@ LedStrip::~LedStrip()
 }
 
 void LedStrip::addChange(LedDescriptor const & ledDescriptor)
+{
+  m_pimpl->m_ledDescriptors.push_back(ledDescriptor);
+  m_pimpl->m_currentStep = m_pimpl->m_ledDescriptors.cbegin();
+}
+
+void LedStrip::addChange(LedDescriptor const & ledDescriptor, DayPattern const & dayPattern, uint8_t const priority)
 {
   m_pimpl->m_ledDescriptors.push_back(ledDescriptor);
   m_pimpl->m_currentStep = m_pimpl->m_ledDescriptors.cbegin();

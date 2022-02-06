@@ -1,4 +1,4 @@
-#include "WallClock.hpp"
+#include "Minute.hpp"
 
 #include <ostream>
 
