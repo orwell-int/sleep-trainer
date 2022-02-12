@@ -4,4 +4,4 @@
 
 //#define RUN_TESTS
 
-uint8_t const NUM_LEDS = 3;
+uint8_t const NUM_LEDS = 15;

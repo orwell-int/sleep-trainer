@@ -39,8 +39,8 @@ public:
 uint32_t const LedStrip::Black = Adafruit_NeoPixel::Color(0, 0, 0);
 uint32_t const LedStrip::ColourDay = Adafruit_NeoPixel::Color(0, 0, 0);
 uint32_t const LedStrip::ColourBeforeNight = Adafruit_NeoPixel::Color(4, 3, 0);
-uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(0, 0, 2);
-uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(0, 3, 2);
+uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(1, 0, 2);
+uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(0, 6, 1);
 uint32_t const LedStrip::ColourTarget = Adafruit_NeoPixel::Color(2, 2, 0);
 uint32_t const LedStrip::ColourNotConnected = Adafruit_NeoPixel::Color(5, 1, 0);
 uint32_t const LedStrip::ColourConnected = Adafruit_NeoPixel::Color(1, 5, 0);
