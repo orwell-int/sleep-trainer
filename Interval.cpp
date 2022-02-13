@@ -2,57 +2,59 @@
 
 #include <ostream>
 
+#include "Clock.hpp"
+
 namespace sleep
 {
 
 namespace
 {
 
-Interval MakeInterval(Period const period)
+Interval MakeInterval(Period const period, Day const day)
 {
   switch (period)
   {
     case Period::Day:
     {
-      return Interval(WallClock::Get(Period::Day), WallClock::Get(Period::BeforeNight));
+      return Interval(Clock::Get(Period::Day, day), Clock::Get(Period::BeforeNight, day));
     }
     case Period::BeforeNight:
     {
-      return Interval(WallClock::Get(Period::BeforeNight), WallClock::Get(Period::Night));
+      return Interval(Clock::Get(Period::BeforeNight, day), Clock::Get(Period::Night, day));
     }
     case Period::Night:
     {
-      return Interval(WallClock::Get(Period::Night), WallClock::Get(Period::AfterNight));
+      return Interval(Clock::Get(Period::Night, day), Clock::Get(Period::AfterNight, day));
     }
     case Period::AfterNight:
     {
-      return Interval(WallClock::Get(Period::AfterNight), WallClock::Get(Period::Day));
+      return Interval(Clock::Get(Period::AfterNight, day), Clock::Get(Period::Day, day));
     }
   }
 }
 
-Interval & AccessInterval(Period const period)
+Interval & AccessInterval(Period const period, Day const day)
 {
   switch (period)
   {
     case Period::Day:
     {
-      static Interval day = MakeInterval(period);
-      return day;
+      static Interval dday = MakeInterval(period, day);
+      return dday;
     }
     case Period::BeforeNight:
     {
-      static Interval beforeNight = MakeInterval(period);
+      static Interval beforeNight = MakeInterval(period, day);
       return beforeNight;
     }
     case Period::Night:
     {
-      static Interval night = MakeInterval(period);
+      static Interval night = MakeInterval(period, day);
       return night;
     }
     case Period::AfterNight:
     {
-      static Interval afterNight = MakeInterval(period);
+      static Interval afterNight = MakeInterval(period, day);
       return afterNight;
     }
   }
@@ -94,16 +96,19 @@ Minute Interval::duration() const
   return end - begin;
 }
 
-Interval const & Interval::Get(Period const period)
+Interval const & Interval::Get(Period const period, Day const day)
 {
-  return AccessInterval(period);
+  return AccessInterval(period, day);
 }
 
 void Interval::UpdateIntervals()
 {
   for (auto const period: Period_All)
   {
-    AccessInterval(period) = MakeInterval(period);
+    for (Day const day: Week())
+    {
+      AccessInterval(period, day) = MakeInterval(period, day);
+    }
   }
 }
 

@@ -1,5 +1,7 @@
 #include "Hour.hpp"
 
+#include "StrictMinute.hpp"
+
 namespace sleep
 {
 
@@ -10,8 +12,8 @@ void Test(TestResult & testResult)
 }
 #endif // #ifdef RUN_TESTS
 
-Hour::Hour(int const epoch)
-  : m_value(epoch)
+Hour::Hour(int const value)
+  : m_value(value)
 {
 }
 
@@ -31,7 +33,7 @@ int Hour::get() const
 
 Minute Hour::minutes() const
 {
-  return Minute(m_value * 60);
+  return Minute(m_value * StrictMinute::Max);
 }
 
 bool Hour::operator ==(Hour const & rhs) const

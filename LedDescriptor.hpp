@@ -5,9 +5,12 @@
 #include "LedArray.hpp"
 
 #include <iosfwd>
+#include <map>
+#include <memory>
 
 namespace sleep
 {
+
 struct LedDescriptor
 {
   Interval m_interval;

@@ -1,18 +1,19 @@
 #pragma once
 
-#include "global.hpp"
-
 #include <memory>
 #include <iosfwd>
+
+#include "global.hpp"
+
+#include "Day.hpp"
 
 namespace sleep
 {
 
-class DayPattern;
 class Pin;
 class LedDescriptor;
 class LedArray;
-class WallClock;
+class Clock;
 
 class LedStrip
 {
@@ -21,18 +22,18 @@ public:
   LedStrip(uint8_t const nbLeds, Pin const & pin, uint8_t const brightness = 5U);
   // Make sure all leds are off
   ~LedStrip();
-  void addChange(LedDescriptor const & ledDescriptor);
-  void addChange(LedDescriptor const & ledDescriptor, DayPattern const & dayPattern, uint8_t const priority);
+  void addChange(LedDescriptor const & ledDescriptor, Day const day);
 
   // Turn all leds off
   void shutdown();
 
   void lightLeds(LedArray const & leds);
 
-  bool update(WallClock const & clock);
+  bool update(Clock const & clock);
 
   bool hasActiveLeds() const;
 
+  // Used for debugging so far
   LedDescriptor const & getActiveLeds() const;
 
   static uint32_t const Black;
