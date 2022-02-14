@@ -132,27 +132,27 @@ Clock const & Clock::Get(Period const period, Day const day)
     {
       static Clock const clockDay(
         Clock::Get(Period::AfterNight, day)
-          + Clock::m_weekClockConfig.m_week.at(day).m_delayAfterNight);
+          + Clock::AccessConfig().m_week.at(day).m_delayAfterNight);
       return clockDay;
     }
     case Period::BeforeNight:
     {
       static Clock const clockBeforeNight(
         Clock::Get(Period::Night, day)
-          - Clock::m_weekClockConfig.m_week.at(day).m_delayBeforeNight);
+          - Clock::AccessConfig().m_week.at(day).m_delayBeforeNight);
       return clockBeforeNight;
     }
     case Period::Night:
     {
       static Clock const clockNight(
-        Clock::m_weekClockConfig.m_week.at(day).m_nightStart,
+        Clock::AccessConfig().m_week.at(day).m_nightStart,
         day);
       return clockNight;
     }
     case Period::AfterNight:
     {
       static Clock const clockAfterNight(
-        Clock::m_weekClockConfig.m_week.at(day).m_nightEnd,
+        Clock::AccessConfig().m_week.at(day).m_nightEnd,
         day);
       return clockAfterNight;
     }
@@ -193,27 +193,37 @@ void Clock::SetDelayAfterNight(int const minutes)
 
 void Clock::SetNightStart(int const hours, int const minutes, Day const day)
 {
-  Clock::m_weekClockConfig.m_week.at(day).m_nightStart = CompactTime
+  Clock::AccessConfig().m_week.at(day).m_nightStart = CompactTime
     { StrictHour(hours), StrictMinute(minutes) };
 }
 
 void Clock::SetNightEnd(int const hours, int const minutes, Day const day)
 {
-  Clock::m_weekClockConfig.m_week.at(day).m_nightEnd = CompactTime
+  Clock::AccessConfig().m_week.at(day).m_nightEnd = CompactTime
     { StrictHour(hours), StrictMinute(minutes) };
 }
 
 void Clock::SetDelayBeforeNight(int const minutes, Day const day)
 {
-  Clock::m_weekClockConfig.m_week.at(day).m_delayBeforeNight = Minute(minutes);
+  Clock::AccessConfig().m_week.at(day).m_delayBeforeNight = Minute(minutes);
 }
 
 void Clock::SetDelayAfterNight(int const minutes, Day const day)
 {
-  Clock::m_weekClockConfig.m_week.at(day).m_delayAfterNight = Minute(minutes);
+  Clock::AccessConfig().m_week.at(day).m_delayAfterNight = Minute(minutes);
 }
 
 WeekClockConfig const & Clock::GetConfig()
+{
+  return Clock::AccessConfig();
+}
+
+void Clock::SetConfig(WeekClockConfig const & clockConfig)
+{
+  Clock::m_weekClockConfig = clockConfig;
+}
+
+WeekClockConfig & Clock::AccessConfig()
 {
   if (Clock::m_weekClockConfig.m_week.empty())
   {
@@ -244,11 +254,6 @@ WeekClockConfig const & Clock::GetConfig()
     }
   }
   return Clock::m_weekClockConfig;
-}
-
-void Clock::SetConfig(WeekClockConfig const & clockConfig)
-{
-  Clock::m_weekClockConfig = clockConfig;
 }
 
 std::ostream & operator <<(std::ostream & stream, Clock const & clock)

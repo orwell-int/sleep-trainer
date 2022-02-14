@@ -71,8 +71,9 @@ class Clock : public WallClock
     static WeekClockConfig const & GetConfig();
     static void SetConfig(WeekClockConfig const & weekClockConfig); 
   private:
-    Day m_day;
+    static WeekClockConfig & AccessConfig();
 
+    Day m_day;
     static WeekClockConfig m_weekClockConfig;
     
 };
