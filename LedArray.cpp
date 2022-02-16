@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <ostream>
+#include <iomanip>
 
 namespace sleep
 {
@@ -35,12 +36,14 @@ void LedArray::fill(uint32_t const colourValue)
 
 std::ostream & operator <<(std::ostream & stream, LedArray const & leds)
 {
-  for (auto const& colour: leds.m_colours)
+  for (auto const & colour: leds.m_colours)
   {
     int const r = colour >> 16;
     int const g = (colour & 0xFF00) >> 8;
     int const b = (colour & 0xFF);
-    stream << " (" << r << ", " << g << ", " << b << ")";
+    stream << " (" << std::setw(3) << r << ", "
+      << std::setw(3) << g << ", "
+      << std::setw(3) << b << ")";
   }
   return stream;
 }

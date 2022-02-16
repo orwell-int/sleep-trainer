@@ -1,10 +1,12 @@
 #include "LedStrip.hpp"
 
 #include <vector>
+#include <map>
 #include <ostream>
 
 #include <Adafruit_NeoPixel.h> // install: Adafruit Neopixel
 
+#include "Clock.hpp"
 #include "WallClock.hpp"
 #include "LedDescriptor.hpp"
 #include "Pin.hpp"
@@ -28,22 +30,25 @@ class LedStrip::Internal
 {
 public:
   Internal(uint8_t const nbLeds, Pin const & pin, uint8_t const brightness);
-  std::vector< LedDescriptor > m_ledDescriptors;
-  std::vector< LedDescriptor >::const_iterator m_currentStep;
+  std::map< Day, std::vector< LedDescriptor > > m_ledDescriptors;
+  std::map< Day, std::vector< LedDescriptor >::const_iterator > m_currentStep;
+  Day m_lastDay;
+  bool m_started;
   Adafruit_NeoPixel m_ledStrip;
 };
 
 uint32_t const LedStrip::Black = Adafruit_NeoPixel::Color(0, 0, 0);
 uint32_t const LedStrip::ColourDay = Adafruit_NeoPixel::Color(0, 0, 0);
-uint32_t const LedStrip::ColourBeforeNight = Adafruit_NeoPixel::Color(5, 3, 1);
-uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(1, 1, 3);
-uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(1, 5, 2);
-uint32_t const LedStrip::ColourTarget = Adafruit_NeoPixel::Color(2, 2, 1);
+uint32_t const LedStrip::ColourBeforeNight = Adafruit_NeoPixel::Color(4, 3, 0);
+uint32_t const LedStrip::ColourNight = Adafruit_NeoPixel::Color(1, 0, 2);
+uint32_t const LedStrip::ColourAfterNight = Adafruit_NeoPixel::Color(0, 6, 1);
+uint32_t const LedStrip::ColourTarget = Adafruit_NeoPixel::Color(2, 2, 0);
 uint32_t const LedStrip::ColourNotConnected = Adafruit_NeoPixel::Color(5, 1, 0);
 uint32_t const LedStrip::ColourConnected = Adafruit_NeoPixel::Color(1, 5, 0);
 
 LedStrip::Internal::Internal(uint8_t const nbLeds, Pin const & pin, uint8_t const brightness)
   : m_ledStrip(nbLeds, pin.get(), NEO_GRB + NEO_KHZ800)
+  , m_started(false)
 {
 }
 
@@ -61,10 +66,10 @@ LedStrip::~LedStrip()
   shutdown();
 }
 
-void LedStrip::addChange(LedDescriptor const & ledDescriptor)
+void LedStrip::addChange(LedDescriptor const & ledDescriptor, Day const day)
 {
-  m_pimpl->m_ledDescriptors.push_back(ledDescriptor);
-  m_pimpl->m_currentStep = m_pimpl->m_ledDescriptors.cbegin();
+  m_pimpl->m_ledDescriptors[day].push_back(ledDescriptor);
+  m_pimpl->m_currentStep[day] = m_pimpl->m_ledDescriptors[day].cbegin();
 }
 
 void LedStrip::shutdown()
@@ -81,16 +86,23 @@ void LedStrip::lightLeds(LedArray const & leds)
   m_pimpl->m_ledStrip.show();
 }
 
-bool LedStrip::update(WallClock const & clock)
+bool LedStrip::update(Clock const & clock)
 {
-  if (m_pimpl->m_ledDescriptors.empty())
+  Day const day = clock.day();
+  if (m_pimpl->m_ledDescriptors[day].empty())
   {
     return false;
   }
   size_t steps = 0;
-  size_t const maxSteps = m_pimpl->m_ledDescriptors.size();
+  if ((m_pimpl->m_started) and (day != m_pimpl->m_lastDay))
+  {
+    m_pimpl->m_currentStep[m_pimpl->m_lastDay] =
+      m_pimpl->m_ledDescriptors[m_pimpl->m_lastDay].cbegin();
+    m_pimpl->m_lastDay = day;
+  }
+  size_t const maxSteps = m_pimpl->m_ledDescriptors[day].size();
   bool updated = false;
-  while (not m_pimpl->m_currentStep->contains(clock))
+  while (not m_pimpl->m_currentStep[day]->contains(clock))
   {
     if (not updated)
     {
@@ -102,15 +114,15 @@ bool LedStrip::update(WallClock const & clock)
       return true;
     }
     ++steps;
-    ++m_pimpl->m_currentStep;
-    if (m_pimpl->m_currentStep == m_pimpl->m_ledDescriptors.end())
+    ++m_pimpl->m_currentStep[day];
+    if (m_pimpl->m_currentStep[day] == m_pimpl->m_ledDescriptors[day].end())
     {
-      m_pimpl->m_currentStep = m_pimpl->m_ledDescriptors.begin();
+      m_pimpl->m_currentStep[day] = m_pimpl->m_ledDescriptors[day].begin();
     }
   }
   if (updated)
   {
-    lightLeds(m_pimpl->m_currentStep->m_leds);
+    lightLeds(m_pimpl->m_currentStep[day]->m_leds);
   }
   return updated;
 }
@@ -122,16 +134,21 @@ bool LedStrip::hasActiveLeds() const
 
 LedDescriptor const & LedStrip::getActiveLeds() const
 {
-  assert(not m_pimpl->m_ledDescriptors.empty());
-  return *m_pimpl->m_currentStep;
+  assert(not m_pimpl->m_ledDescriptors.at(m_pimpl->m_lastDay).empty());
+  return *m_pimpl->m_currentStep.at(m_pimpl->m_lastDay);
 }
 
 std::ostream & operator <<(std::ostream & stream, LedStrip const & ledStrip)
 {
-  stream << "led descriptor with " << ledStrip.m_pimpl->m_ledDescriptors.size() << " steps\n";
-  for (auto const& ledDescriptor: ledStrip.m_pimpl->m_ledDescriptors)
+  stream << "led descriptor with " << ledStrip.m_pimpl->m_ledDescriptors.size() << " days\n";
+  for (auto const & mapItem: ledStrip.m_pimpl->m_ledDescriptors)
   {
-    stream << ledDescriptor << "\n";
+    Day const & day = mapItem.first;
+    stream << "  " << day << " with " << mapItem.second.size() << " days\n";
+    for (auto const & ledDescriptor: mapItem.second)
+    {
+      stream << "    " << ledDescriptor << "\n";
+    }
   }
   return stream;
 }

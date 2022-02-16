@@ -12,28 +12,31 @@
 namespace sleep
 {
 
-// Default values for the configuration
-ClockConfig WallClock::m_clockConfig =
+CompactTime::CompactTime(StrictHour const & hours, StrictMinute const & minutes)
+  : m_hours(hours)
+  , m_minutes(minutes)
 {
-  Hour(19), Minute(0),
-  Hour(5), Minute(45),
-  Minute(30),
-  Minute(60)
-};
+}
 
-WallClock::WallClock(Hour const & hours, Minute const & minutes)
-  : m_hours(hours.get() % 24)
-  , m_minutes(minutes.get() % 60)
+WallClock::WallClock(CompactTime const & compactTime)
+  : m_hours(compactTime.m_hours)
+  , m_minutes(compactTime.m_minutes)
+{
+}
+
+WallClock::WallClock(StrictHour const & hours, StrictMinute const & minutes)
+  : m_hours(hours)
+  , m_minutes(minutes)
 {
 }
 
 WallClock::WallClock(Minute const & totalMinutes)
-  : m_hours((totalMinutes.get() / 60) % 24)
-  , m_minutes(totalMinutes.get() % 60)
+  : m_hours((totalMinutes.get() / StrictMinute::Max) % StrictHour::Max)
+  , m_minutes(totalMinutes.get() % StrictMinute::Max)
 {
 }
 
-WallClock::WallClock(int const epoch)
+WallClock::WallClock(unsigned long const epoch)
   : m_hours(hour(epoch))
   , m_minutes(minute(epoch))
 {
@@ -55,33 +58,33 @@ WallClock & WallClock::operator =(WallClock const & other)
   return *this;
 }
 
-Hour const& WallClock::hours() const
+StrictHour const & WallClock::hours() const
 {
   return m_hours;
 }
 
-Minute const& WallClock::minutes() const
+StrictMinute const & WallClock::minutes() const
 {
   return m_minutes;
 }
 
 Minute WallClock::totalMinutes() const
 {
-  return Minute(m_hours.get() * 60) + m_minutes;
+  return Minute(m_hours.get() * StrictMinute::Max) + m_minutes;
 }
 
-Period WallClock::getPeriod() const
-{
-  for (auto const period: Period_All)
-  {
-    if (Interval::Get(period).contains(*this))
-    {
-      return period;
-    }
-  }
-  // there is always a matching period
-  assert(false);
-}
+// Period WallClock::getPeriod(Day const day) const
+// {
+//   for (auto const period: Period_All)
+//   {
+//     if (Interval::Get(period, day).contains(*this))
+//     {
+//       return period;
+//     }
+//   }
+//   // there is always a matching period
+//   assert(false);
+// }
 
 WallClock WallClock::operator +(Hour const & hour) const
 {
@@ -113,7 +116,7 @@ Minute WallClock::operator -(WallClock const & rhs) const
   }
   else
   {
-    return Minute(mine - others + 60 * 24);
+    return Minute(mine - others + StrictMinute::Max * StrictHour::Max);
   }
 }
 
@@ -151,75 +154,41 @@ bool WallClock::operator >=(WallClock const& rhs) const
     or (m_hours > rhs.m_hours);
 }
 
-WallClock const & WallClock::Get(Period const period)
-{
-  switch (period)
-  {
-    case Period::Day:
-    {
-      static WallClock const clockDay(
-        WallClock::Get(Period::AfterNight)
-         + Minute(WallClock::m_clockConfig.m_delayAfterNight));
-      return clockDay;
-    }
-    case Period::BeforeNight:
-    {
-      static WallClock const clockBeforeNight(WallClock::Get(Period::Night)
-       - Minute(WallClock::m_clockConfig.m_delayBeforeNight));
-      return clockBeforeNight;
-    }
-    case Period::Night:
-    {
-      static WallClock const clockNight(
-        WallClock::m_clockConfig.m_nightStartHours,
-         WallClock::m_clockConfig.m_nightStartMinutes);
-      return clockNight;
-    }
-    case Period::AfterNight:
-    {
-      static WallClock const clockAfterNight(
-        WallClock::m_clockConfig.m_nightEndHours,
-         WallClock::m_clockConfig.m_nightEndMinutes);
-      return clockAfterNight;
-    }
-  }
-}
+// void WallClock::SetNightStart(int const hours, int const minutes)
+// {
+//   for (auto const & day: Week())
+//   {
+//     Clock::SetNightStart(hours, minutes, day);
+//   }
+// }
 
-void WallClock::SetNightStart(int const hours, int const minutes)
-{
-  WallClock::m_clockConfig.m_nightStartHours = Hour(hours);
-  WallClock::m_clockConfig.m_nightStartMinutes = Minute(minutes);
-}
+// void WallClock::SetNightEnd(int const hours, int const minutes)
+// {
+//   for (auto const & day: Week())
+//   {
+//     Clock::SetNightEnd(hours, minutes, day);
+//   }
+// }
 
-void WallClock::SetNightEnd(int const hours, int const minutes)
-{
-  WallClock::m_clockConfig.m_nightEndHours = Hour(hours);
-  WallClock::m_clockConfig.m_nightEndMinutes = Minute(minutes);
-}
+// void WallClock::SetDelayBeforeNight(int const minutes)
+// {
+//   for (auto const & day: Week())
+//   {
+//     Clock::SetDelayBeforeNight(minutes, day);
+//   }
+// }
 
-void WallClock::SetDelayBeforeNight(int const minutes)
-{
-  WallClock::m_clockConfig.m_delayBeforeNight = Minute(minutes);
-}
-
-void WallClock::SetDelayAfterNight(int const minutes)
-{
-  WallClock::m_clockConfig.m_delayAfterNight = Minute(minutes);
-}
-
-ClockConfig const & WallClock::GetConfig()
-{
-  return WallClock::m_clockConfig;
-}
-
-void WallClock::SetConfig(ClockConfig const & clockConfig)
-{
-  WallClock::m_clockConfig = clockConfig;
-}
+// void WallClock::SetDelayAfterNight(int const minutes)
+// {
+//   for (auto const & day: Week())
+//   {
+//     Clock::SetDelayAfterNight(minutes, day);
+//   }
+// }
 
 int WallClock::rawTotalMinutes() const
 {
-  return m_minutes.get() + m_hours.get() * 60;
+  return m_minutes.get() + m_hours.get() * StrictMinute::Max;
 }
 
 std::ostream & operator <<(std::ostream & stream, WallClock const& wallClock)

@@ -1,33 +1,32 @@
 #pragma once
 
-#include "global.hpp"
-
 #include <iosfwd>
+#include <map>
+
+#include "global.hpp"
 
 #include "Hour.hpp"
 #include "Minute.hpp"
+#include "StrictHour.hpp"
+#include "StrictMinute.hpp"
 #include "Period.hpp"
 
 namespace sleep
 {
 
+struct CompactTime
+{
+  StrictHour m_hours;
+  StrictMinute m_minutes;
+
+  CompactTime(StrictHour const & hours, StrictMinute const & minutes);
+};
+
 #ifdef RUN_TESTS
 class TestResult;
 #endif // #ifdef RUN_TESTS
 
-class Hour;
-class Minute;
 class Time;
-
-struct ClockConfig
-{
-    Hour m_nightStartHours;
-    Minute m_nightStartMinutes;
-    Hour m_nightEndHours;
-    Minute m_nightEndMinutes;
-    Minute m_delayBeforeNight;
-    Minute m_delayAfterNight;
-};
 
 class WallClock
 {
@@ -36,20 +35,21 @@ class WallClock
     static void Test(TestResult & testResult);
 #endif // #ifdef RUN_TESTS
 
-    WallClock(Hour const & hours, Minute const & minutes);
+    WallClock(CompactTime const & compactTime);
+    WallClock(StrictHour const & hours, StrictMinute const & minutes);
     WallClock(Minute const & totalMinutes);
-    WallClock(int const epoch);
+    WallClock(unsigned long const epoch);
 
     WallClock(WallClock const & other);
 
     WallClock & operator =(WallClock const & other);
 
-    Hour const& hours() const;
-    Minute const&  minutes() const;
+    StrictHour const & hours() const;
+    StrictMinute const & minutes() const;
 
     Minute totalMinutes() const;
 
-    Period getPeriod() const;
+    // Period getPeriod(Day const day) const;
 
     WallClock operator +(Hour const & hour) const;
     WallClock operator +(Minute const & minute) const;
@@ -65,23 +65,16 @@ class WallClock
     bool operator <=(WallClock const& rhs) const;
     bool operator >=(WallClock const& rhs) const;
 
-    static WallClock const & Get(Period const period);
-    static void SetNightStart(int const hours, int const minutes);
-    static void SetNightEnd(int const hours, int const minutes);
-    static void SetDelayBeforeNight(int const minutes);
-    static void SetDelayAfterNight(int const minutes);
-    static ClockConfig const & GetConfig();
-    static void SetConfig(ClockConfig const & clockConfig); 
+    // static void SetNightStart(int const hours, int const minutes);
+    // static void SetNightEnd(int const hours, int const minutes);
+    // static void SetDelayBeforeNight(int const minutes);
+    // static void SetDelayAfterNight(int const minutes);
   private:
-
 
     int rawTotalMinutes() const;
 
-    Hour m_hours;
-    Minute m_minutes;
-
-    static ClockConfig m_clockConfig;
-    
+    StrictHour m_hours;
+    StrictMinute m_minutes;
 };
 
 std::ostream & operator <<(std::ostream & stream, WallClock const& wallClock);

@@ -4,7 +4,7 @@
 
 #include "Period.hpp"
 //#include "Time.hpp"
-#include "WallClock.hpp"
+#include "Clock.hpp"
 #include "LedStrip.hpp"
 #include "Pin.hpp"
 #include "Interval.hpp"
@@ -154,62 +154,68 @@ static void SillyTest()
 static void SetupLedStrip()
 {
   Serial.println("SetupLedStrip");
-  WallClock const & dayBegin = WallClock::Get(Period::Day);
-  STREAM << "SetupLedStrip dayBegin = " << dayBegin;
-  PrintAndClearStream();
-  WallClock const & beforeNightBegin = WallClock::Get(Period::BeforeNight);
-  STREAM << "SetupLedStrip beforeNightBegin = " << beforeNightBegin;
-  PrintAndClearStream();
-  WallClock const & nightBegin = WallClock::Get(Period::Night);
-  STREAM << "SetupLedStrip nightBegin = " << nightBegin;
-  PrintAndClearStream();
-  WallClock const & afterNightBegin = WallClock::Get(Period::AfterNight);
-  STREAM << "SetupLedStrip afterNightBegin = " << afterNightBegin;
-  PrintAndClearStream();
-
-  Interval const & beforeNight = Interval::Get(Period::BeforeNight);
-  Interval const & night = Interval::Get(Period::Night);
-
-  double const factorBeforeNight = (double)beforeNight.duration().get() / (double)(NUM_LEDS);
-  STREAM << "factorBeforeNight = " << factorBeforeNight;
-  double const factorNight = (double)night.duration().get() / (double)(NUM_LEDS - 1);
-  STREAM << " ; factorNight = " << factorNight;
-  PrintAndClearStream();
-  WallClock lastClock = beforeNightBegin;
-  LedArray leds;
-  Interval interval(dayBegin, beforeNightBegin);
-  LED_STRIP.addChange(LedDescriptor(interval, leds));
-  STREAM << interval << " : " << 0 << " LED(s)" << leds;
-  PrintAndClearStream();
-  leds.fill(LedStrip::ColourBeforeNight);
-  for (size_t i = 0 ; i < NUM_LEDS ; ++i)
+  for (Day const day: Week())
   {
-    WallClock const clock = beforeNightBegin + Minute((i + 1) * factorBeforeNight);
-    interval = Interval(lastClock, clock);
-    STREAM << interval << " : " << (NUM_LEDS - 1) << " LED(s)" << leds;
+    STREAM << "Configure " << day;
     PrintAndClearStream();
-    LED_STRIP.addChange(LedDescriptor(interval, leds));
-    lastClock = clock;
-    leds.set(NUM_LEDS - (i + 1), LedStrip::Black);
-  }
-  leds.clear();
-  leds.set(NUM_LEDS - 1, LedStrip::ColourTarget);
-  lastClock = nightBegin;
-  for (size_t i = 0 ; i < NUM_LEDS - 1 ; ++i)
-  {
-    WallClock const clock = nightBegin + Minute((i + 1) * factorNight);
-    interval = Interval(lastClock, clock);
-    STREAM << interval << " : " << i << " LED(s)" << leds;
+
+    Clock const & dayBegin = Clock::Get(Period::Day, day);
+    STREAM << "SetupLedStrip dayBegin = " << dayBegin;
     PrintAndClearStream();
-    LED_STRIP.addChange(LedDescriptor(interval, leds));
-    lastClock = clock;
-    leds.set(i, LedStrip::ColourNight);
+    Clock const & beforeNightBegin = Clock::Get(Period::BeforeNight, day);
+    STREAM << "SetupLedStrip beforeNightBegin = " << beforeNightBegin;
+    PrintAndClearStream();
+    Clock const & nightBegin = Clock::Get(Period::Night, day);
+    STREAM << "SetupLedStrip nightBegin = " << nightBegin;
+    PrintAndClearStream();
+    Clock const & afterNightBegin = Clock::Get(Period::AfterNight, day);
+    STREAM << "SetupLedStrip afterNightBegin = " << afterNightBegin;
+    PrintAndClearStream();
+
+    Interval const & beforeNight = Interval::Get(Period::BeforeNight, day);
+    Interval const & night = Interval::Get(Period::Night, day);
+
+    double const factorBeforeNight = (double)beforeNight.duration().get() / (double)(NUM_LEDS);
+    STREAM << "factorBeforeNight = " << factorBeforeNight;
+    double const factorNight = (double)night.duration().get() / (double)(NUM_LEDS - 1);
+    STREAM << " ; factorNight = " << factorNight;
+    PrintAndClearStream();
+    WallClock lastClock = beforeNightBegin;
+    LedArray leds;
+    Interval interval(dayBegin, beforeNightBegin);
+    LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+    STREAM << interval << " : " << 0 << " LED(s)" << leds;
+    PrintAndClearStream();
+    leds.fill(LedStrip::ColourBeforeNight);
+    for (size_t i = 0 ; i < NUM_LEDS ; ++i)
+    {
+      WallClock const clock = beforeNightBegin + Minute((i + 1) * factorBeforeNight);
+      interval = Interval(lastClock, clock);
+      STREAM << interval << " : " << (NUM_LEDS - 1) << " LED(s)" << leds;
+      PrintAndClearStream();
+      LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+      lastClock = clock;
+      leds.set(NUM_LEDS - (i + 1), LedStrip::Black);
+    }
+    leds.clear();
+    leds.set(NUM_LEDS - 1, LedStrip::ColourTarget);
+    lastClock = nightBegin;
+    for (size_t i = 0 ; i < NUM_LEDS - 1 ; ++i)
+    {
+      WallClock const clock = nightBegin + Minute((i + 1) * factorNight);
+      interval = Interval(lastClock, clock);
+      STREAM << interval << " : " << i << " LED(s)" << leds;
+      PrintAndClearStream();
+      LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+      lastClock = clock;
+      leds.set(i, LedStrip::ColourNight);
+    }
+    leds.fill(LedStrip::ColourAfterNight);
+    interval = Interval(afterNightBegin, dayBegin);
+    LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+    STREAM << interval << " : " << (int)NUM_LEDS << " LED(s)" << leds;
+    PrintAndClearStream();
   }
-  leds.fill(LedStrip::ColourAfterNight);
-  interval = Interval(afterNightBegin, dayBegin);
-  LED_STRIP.addChange(LedDescriptor(interval, leds));
-  STREAM << interval << " : " << (int)NUM_LEDS << " LED(s)" << leds;
-  PrintAndClearStream();
   STREAM << "LED_STRIP:\n" << LED_STRIP;
   PrintAndClearStream();
 }
@@ -219,6 +225,9 @@ static void Demo()
   Serial.println("Demo start");
   // 72s -> 72000ms
   timeClient.update();
+  sleep::Clock const clock(timeClient.getEpochTime());
+  // Run the demo for current day
+  sleep::Day const day = clock.day();
 
   // Duration of the demo (real time)
   unsigned long demoDurationMillis = 72 * 1000;
@@ -229,9 +238,9 @@ static void Demo()
   unsigned long const startMillis = millis();
   unsigned long const endMillis = startMillis + demoDurationMillis;
   // Simulated begin time
-  WallClock const beginDemo = WallClock::Get(Period::BeforeNight) - Minute(60);
+  Clock const beginDemo = Clock::Get(Period::BeforeNight, day) - Minute(60);
   // Simulated end time
-  WallClock const endDemo = WallClock::Get(Period::Day) + Minute(60);
+  Clock const endDemo = Clock::Get(Period::Day, day) + Minute(60);
   int const beginDemoMinutes = beginDemo.totalMinutes().get();
 
   double const factor = (double)(endDemo - beginDemo).get() / (double)demoDurationMillis;
@@ -244,15 +253,15 @@ static void Demo()
   Serial.print("end: ");
   Serial.print(endMillis);
   Serial.println(" ms");
-  WallClock fakeWallClock(beginDemo);
+  Clock fakeClock(beginDemo);
   do
   {
     delay(100);
     nowMillis = millis();
     deltaMillis = nowMillis - startMillis;
     deltaFakeMinutes = deltaMillis * factor;
-    fakeWallClock = WallClock(Minute(beginDemoMinutes + deltaFakeMinutes));
-    if (LED_STRIP.update(fakeWallClock))
+    fakeClock = Clock(Minute(beginDemoMinutes + deltaFakeMinutes), day);
+    if (LED_STRIP.update(fakeClock))
     {
       STREAM << "At " << nowMillis << "ms " << LED_STRIP.getActiveLeds();
       PrintAndClearStream();
@@ -313,7 +322,7 @@ void setup()
   }
 
   timeClient.update();
-  sleep::WallClock const clock(timeClient.getEpochTime());
+  sleep::Clock const clock(timeClient.getEpochTime());
   bool const isDay = clock.getPeriod() == sleep::Period::Day;
   STREAM << "Period in setup: " << clock.getPeriod();
   sleep::PrintAndClearStream();
@@ -342,7 +351,7 @@ void loop()
 
   delay(1000);
   timeClient.update();
-  sleep::WallClock const clock(timeClient.getEpochTime());
+  sleep::Clock const clock(timeClient.getEpochTime());
   if (++LOOPS > MAX_LOOPS)
   {
     Serial.println("bip");
