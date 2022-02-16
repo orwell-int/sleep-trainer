@@ -27,7 +27,9 @@ NTPClient timeClient(ntpUDP);
 int const LED_PIN = 2;
 int const BUTTON_PIN = 5;
 
+#ifdef STREAM_DEBUG
 std::ostringstream STREAM;
+#endif // #ifdef STREAM_DEBUG
 uint32_t LOOPS;
 uint32_t const MAX_LOOPS = 10;
 
@@ -36,12 +38,14 @@ namespace sleep
 
 LedStrip LED_STRIP(NUM_LEDS, Pin(LED_PIN), 255U);
 
+#ifdef STREAM_DEBUG
 static void PrintAndClearStream()
 {
   Serial.println(STREAM.str().c_str());
   STREAM.str("");
   STREAM.clear();
 }
+#endif // #ifdef STREAM_DEBUG
 
 #ifdef RUN_TESTS
 
@@ -56,6 +60,7 @@ static void Test()
 
 #endif // #ifdef RUN_TESTS
 
+#ifdef STREAM_DEBUG
 static void SillyTest()
 {
   sleep::WallClock c1(11, 0);
@@ -135,6 +140,7 @@ static void SillyTest()
   }
   sleep::PrintAndClearStream();
 }
+#endif // #ifdef STREAM_DEBUG
 
 // Day: all dark
 //      .....
@@ -156,43 +162,61 @@ static void SetupLedStrip()
   Serial.println("SetupLedStrip");
   for (Day const day: Week())
   {
+#ifdef STREAM_DEBUG
     STREAM << "Configure " << day;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
 
     Clock const & dayBegin = Clock::Get(Period::Day, day);
+#ifdef STREAM_DEBUG
     STREAM << "SetupLedStrip dayBegin = " << dayBegin;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     Clock const & beforeNightBegin = Clock::Get(Period::BeforeNight, day);
+#ifdef STREAM_DEBUG
     STREAM << "SetupLedStrip beforeNightBegin = " << beforeNightBegin;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     Clock const & nightBegin = Clock::Get(Period::Night, day);
+#ifdef STREAM_DEBUG
     STREAM << "SetupLedStrip nightBegin = " << nightBegin;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     Clock const & afterNightBegin = Clock::Get(Period::AfterNight, day);
+#ifdef STREAM_DEBUG
     STREAM << "SetupLedStrip afterNightBegin = " << afterNightBegin;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
 
     Interval const & beforeNight = Interval::Get(Period::BeforeNight, day);
     Interval const & night = Interval::Get(Period::Night, day);
 
     double const factorBeforeNight = (double)beforeNight.duration().get() / (double)(NUM_LEDS);
+#ifdef STREAM_DEBUG
     STREAM << "factorBeforeNight = " << factorBeforeNight;
+#endif // #ifdef STREAM_DEBUG
     double const factorNight = (double)night.duration().get() / (double)(NUM_LEDS - 1);
+#ifdef STREAM_DEBUG
     STREAM << " ; factorNight = " << factorNight;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     WallClock lastClock = beforeNightBegin;
     LedArray leds;
     Interval interval(dayBegin, beforeNightBegin);
     LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+#ifdef STREAM_DEBUG
     STREAM << interval << " : " << 0 << " LED(s)" << leds;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     leds.fill(LedStrip::ColourBeforeNight);
     for (size_t i = 0 ; i < NUM_LEDS ; ++i)
     {
       WallClock const clock = beforeNightBegin + Minute((i + 1) * factorBeforeNight);
       interval = Interval(lastClock, clock);
+#ifdef STREAM_DEBUG
       STREAM << interval << " : " << (NUM_LEDS - 1) << " LED(s)" << leds;
       PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
       LED_STRIP.addChange(LedDescriptor(interval, leds), day);
       lastClock = clock;
       leds.set(NUM_LEDS - (i + 1), LedStrip::Black);
@@ -204,8 +228,10 @@ static void SetupLedStrip()
     {
       WallClock const clock = nightBegin + Minute((i + 1) * factorNight);
       interval = Interval(lastClock, clock);
+#ifdef STREAM_DEBUG
       STREAM << interval << " : " << i << " LED(s)" << leds;
       PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
       LED_STRIP.addChange(LedDescriptor(interval, leds), day);
       lastClock = clock;
       leds.set(i, LedStrip::ColourNight);
@@ -213,11 +239,15 @@ static void SetupLedStrip()
     leds.fill(LedStrip::ColourAfterNight);
     interval = Interval(afterNightBegin, dayBegin);
     LED_STRIP.addChange(LedDescriptor(interval, leds), day);
+#ifdef STREAM_DEBUG
     STREAM << interval << " : " << (int)NUM_LEDS << " LED(s)" << leds;
     PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
   }
+#ifdef STREAM_DEBUG
   STREAM << "LED_STRIP:\n" << LED_STRIP;
   PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
 }
 
 static void Demo()
@@ -263,8 +293,10 @@ static void Demo()
     fakeClock = Clock(Minute(beginDemoMinutes + deltaFakeMinutes), day);
     if (LED_STRIP.update(fakeClock))
     {
+#ifdef STREAM_DEBUG
       STREAM << "At " << nowMillis << "ms " << LED_STRIP.getActiveLeds();
       PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG
     }
   } while (nowMillis < endMillis);
 }
@@ -279,7 +311,9 @@ void setup()
   // Add a delay to make sure that the connection is open properly
   delay(1000);
   Serial.println("START");
+#ifdef STREAM_DEBUG
   sleep::SillyTest();
+#endif // #ifdef STREAM_DEBUG
   sleep::SetupLedStrip();
 
   sleep::LedArray leds;
@@ -324,8 +358,10 @@ void setup()
   timeClient.update();
   sleep::Clock const clock(timeClient.getEpochTime());
   bool const isDay = clock.getPeriod() == sleep::Period::Day;
+#ifdef STREAM_DEBUG
   STREAM << "Period in setup: " << clock.getPeriod();
   sleep::PrintAndClearStream();
+#endif // #ifdef STREAM_DEBUG®
 
   if (isDay)
   {
