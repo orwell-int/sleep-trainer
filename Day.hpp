@@ -25,6 +25,8 @@ enum class Day
 
 std::ostream & operator <<(std::ostream & stream, Day const & day);
 
+void PrintDay(Day const day);
+
 Day EpochToDay(unsigned long const epoch);
 
 std::set< Day > const & Week();

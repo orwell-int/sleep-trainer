@@ -361,7 +361,11 @@ void setup()
 #ifdef STREAM_DEBUG
   STREAM << "Period in setup: " << clock.getPeriod();
   sleep::PrintAndClearStream();
-#endif // #ifdef STREAM_DEBUG®
+#endif // #ifdef STREAM_DEBUG
+
+  Serial.print("day: ");
+  PrintDay(clock.day());
+  Serial.println("");
 
   if (isDay)
   {
