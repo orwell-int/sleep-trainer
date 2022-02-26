@@ -383,23 +383,18 @@ void loop()
 #ifdef RUN_TESTS
   sleep::Test();
 #else // #ifndef RUN_TESTS
-  int reading = digitalRead(BUTTON_PIN);
-  if (reading == HIGH)
-  {
-    SHOW_DEMO = true;
-  }
 
   delay(1000);
   timeClient.update();
   sleep::Clock const clock(timeClient.getEpochTime());
+  int reading = digitalRead(BUTTON_PIN);
+  if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
+  {
+    sleep::Demo();
+  }
   if (++LOOPS > MAX_LOOPS)
   {
     Serial.println("bip");
-    if (SHOW_DEMO and clock.getPeriod() == sleep::Period::Day)
-    {
-      sleep::Demo();
-      SHOW_DEMO = false;
-    }
     LOOPS = 0;
   }
   sleep::LED_STRIP.update(clock);
