@@ -273,7 +273,19 @@ static void Demo()
   Clock const endDemo = Clock::Get(Period::Day, day) + Minute(60);
   int const beginDemoMinutes = beginDemo.totalMinutes().get();
 
-  double const factor = (double)(endDemo - beginDemo).get() / (double)demoDurationMillis;
+  Serial.print("beginDemo: ");
+  beginDemo.print();
+  Serial.println("");
+  Serial.print("endDemo: ");
+  endDemo.print();
+  Serial.println("");
+  Serial.print("demo duration: ");
+  int demoDuration = (endDemo - beginDemo).get();
+  Serial.println(demoDuration);
+  Serial.print("demo duration ms: ");
+  Serial.println(demoDurationMillis);
+
+  double const factor = (double)demoDuration / (double)demoDurationMillis;
   Serial.print("factor: ");
   Serial.println(factor);
 

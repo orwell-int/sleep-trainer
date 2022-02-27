@@ -59,7 +59,9 @@ class Clock : public WallClock
     Clock operator -(Minute const & minute) const;
     Minute operator -(Clock const & rhs) const;
 
-    static Clock const & Get(Period const period, Day const day);
+    void print() const;
+
+    static Clock Get(Period const period, Day const day);
     static void SetNightStart(int const hours, int const minutes);
     static void SetNightEnd(int const hours, int const minutes);
     static void SetDelayBeforeNight(int const minutes);

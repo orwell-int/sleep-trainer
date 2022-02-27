@@ -108,7 +108,7 @@ std::set< Day > const & Week()
 
 bool IsWeekDay(Day const day)
 {
-  return (not (Day::Saturday == day) or (Day::Sunday == day));
+  return (not ((Day::Saturday == day) or (Day::Sunday == day)));
 }
 
 Day PreviousDay(Day const day)

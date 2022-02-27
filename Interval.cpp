@@ -2,6 +2,8 @@
 
 #include <ostream>
 
+#include <SoftwareSerial.h>
+
 #include "Clock.hpp"
 
 namespace sleep
@@ -33,29 +35,25 @@ Interval MakeInterval(Period const period, Day const day)
   }
 }
 
-Interval & AccessInterval(Period const period, Day const day)
+Interval AccessInterval(Period const period, Day const day)
 {
   switch (period)
   {
     case Period::Day:
     {
-      static Interval dday = MakeInterval(period, day);
-      return dday;
+      return MakeInterval(period, day);
     }
     case Period::BeforeNight:
     {
-      static Interval beforeNight = MakeInterval(period, day);
-      return beforeNight;
+      return MakeInterval(period, day);
     }
     case Period::Night:
     {
-      static Interval night = MakeInterval(period, day);
-      return night;
+      return MakeInterval(period, day);
     }
     case Period::AfterNight:
     {
-      static Interval afterNight = MakeInterval(period, day);
-      return afterNight;
+      return MakeInterval(period, day);
     }
   }
 }
@@ -96,7 +94,16 @@ Minute Interval::duration() const
   return end - begin;
 }
 
-Interval const & Interval::Get(Period const period, Day const day)
+void Interval::print() const
+{
+  Serial.print("[");
+  begin.print();
+  Serial.print("-");
+  end.print();
+  Serial.print("]");
+}
+
+Interval Interval::Get(Period const period, Day const day)
 {
   return AccessInterval(period, day);
 }

@@ -4,6 +4,7 @@
 #include <ostream>
 
 #include <TimeLib.h>
+#include <SoftwareSerial.h>
 
 #include "Hour.hpp"
 #include "Minute.hpp"
@@ -127,7 +128,7 @@ bool WallClock::operator ==(WallClock const& rhs) const
 
 bool WallClock::operator !=(WallClock const& rhs) const
 {
-  return (m_hours != rhs.m_hours) and (m_minutes != rhs.m_minutes);
+  return (m_hours != rhs.m_hours) or (m_minutes != rhs.m_minutes);
 }
 
 bool WallClock::operator <(WallClock const& rhs) const
@@ -152,6 +153,23 @@ bool WallClock::operator >=(WallClock const& rhs) const
 {
   return ((m_hours == rhs.m_hours) and (m_minutes >= rhs.m_minutes))
     or (m_hours > rhs.m_hours);
+}
+
+void WallClock::print() const
+{
+  int hour = m_hours.get();
+  if (hour < 10)
+  {
+    Serial.print("0");
+  }
+  Serial.print(hour);
+  Serial.print(":");
+  int minute = m_minutes.get();
+  if (minute < 10)
+  {
+    Serial.print("0");
+  }
+  Serial.print(minute);
 }
 
 // void WallClock::SetNightStart(int const hours, int const minutes)
