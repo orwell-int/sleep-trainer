@@ -65,6 +65,8 @@ class WallClock
     bool operator <=(WallClock const& rhs) const;
     bool operator >=(WallClock const& rhs) const;
 
+    void print() const;
+
     // static void SetNightStart(int const hours, int const minutes);
     // static void SetNightEnd(int const hours, int const minutes);
     // static void SetDelayBeforeNight(int const minutes);

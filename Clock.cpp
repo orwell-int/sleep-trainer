@@ -4,6 +4,7 @@
 #include <ostream>
 
 #include <TimeLib.h>
+#include <SoftwareSerial.h>
 
 #include "Hour.hpp"
 #include "Minute.hpp"
@@ -72,11 +73,15 @@ Period Clock::getPeriod() const
 {
   for (auto const period: Period_All)
   {
-    if (Interval::Get(period, m_day).contains(*this))
+    Interval interval = Interval::Get(period, m_day);
+    if (interval.contains(*this))
     {
       return period;
     }
   }
+  Serial.print("Could not get period for clock: ");
+  print();
+  Serial.println("");
   // there is always a matching period
   assert(false);
   // return WallClock::getPeriod(m_day);
@@ -124,34 +129,37 @@ Minute Clock::operator -(Clock const & rhs) const
   return WallClock::operator -(rhs);
 }
 
-Clock const & Clock::Get(Period const period, Day const day)
+void Clock::print() const
+{
+  PrintDay(m_day);
+  Serial.print(", ");
+  WallClock::print();
+}
+
+Clock Clock::Get(Period const period, Day const day)
 {
   switch (period)
   {
     case Period::Day:
     {
-      static Clock const clockDay(
-        Clock::Get(Period::AfterNight, day)
-          + Clock::AccessConfig().m_week.at(day).m_delayAfterNight);
-      return clockDay;
+      Clock clock(Clock::AccessConfig().m_week.at(day).m_nightEnd, day);
+      return clock + Clock::AccessConfig().m_week.at(day).m_delayAfterNight;
     }
     case Period::BeforeNight:
     {
-      static Clock const clockBeforeNight(
-        Clock::Get(Period::Night, day)
-          - Clock::AccessConfig().m_week.at(day).m_delayBeforeNight);
-      return clockBeforeNight;
+      Clock clock(Clock::AccessConfig().m_week.at(day).m_nightStart, day);
+      return clock - Clock::AccessConfig().m_week.at(day).m_delayBeforeNight;
     }
     case Period::Night:
     {
-      static Clock const clockNight(
+      Clock clockNight(
         Clock::AccessConfig().m_week.at(day).m_nightStart,
         day);
       return clockNight;
     }
     case Period::AfterNight:
     {
-      static Clock const clockAfterNight(
+      Clock clockAfterNight(
         Clock::AccessConfig().m_week.at(day).m_nightEnd,
         day);
       return clockAfterNight;

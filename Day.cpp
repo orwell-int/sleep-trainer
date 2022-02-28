@@ -3,6 +3,7 @@
 #include <ostream>
 
 #include <TimeLib.h>
+#include <SoftwareSerial.h>
 
 namespace sleep
 {
@@ -43,9 +44,52 @@ std::ostream & operator <<(std::ostream & stream, Day const & day)
   return stream;
 }
 
+
+void PrintDay(Day const day)
+{
+  switch (day)
+  {
+    case Day::Monday:
+    {
+      Serial.print("Monday");
+      break;
+    }
+    case Day::Tuesday:
+    {
+      Serial.print("Tuesday");
+      break;
+    }
+    case Day::Wednesday:
+    {
+      Serial.print("Wednesday");
+      break;
+    }
+    case Day::Thursday:
+    {
+      Serial.print("Thursday");
+      break;
+    }
+    case Day::Friday:
+    {
+      Serial.print("Friday");
+      break;
+    }
+    case Day::Saturday:
+    {
+      Serial.print("Saturday");
+      break;
+    }
+    case Day::Sunday:
+    {
+      Serial.print("Sunday");
+      break;
+    }
+  }
+}
+
 Day EpochToDay(unsigned long const epoch)
 {
-  return Day((weekday(epoch) - 1) % 7);
+  return Day((weekday(epoch) + 5) % 7);
 }
 
 std::set< Day > const & Week()
@@ -64,7 +108,7 @@ std::set< Day > const & Week()
 
 bool IsWeekDay(Day const day)
 {
-  return (not (Day::Saturday == day) or (Day::Sunday == day));
+  return (not ((Day::Saturday == day) or (Day::Sunday == day)));
 }
 
 Day PreviousDay(Day const day)

@@ -273,7 +273,19 @@ static void Demo()
   Clock const endDemo = Clock::Get(Period::Day, day) + Minute(60);
   int const beginDemoMinutes = beginDemo.totalMinutes().get();
 
-  double const factor = (double)(endDemo - beginDemo).get() / (double)demoDurationMillis;
+  Serial.print("beginDemo: ");
+  beginDemo.print();
+  Serial.println("");
+  Serial.print("endDemo: ");
+  endDemo.print();
+  Serial.println("");
+  Serial.print("demo duration: ");
+  int demoDuration = (endDemo - beginDemo).get();
+  Serial.println(demoDuration);
+  Serial.print("demo duration ms: ");
+  Serial.println(demoDurationMillis);
+
+  double const factor = (double)demoDuration / (double)demoDurationMillis;
   Serial.print("factor: ");
   Serial.println(factor);
 
@@ -361,7 +373,11 @@ void setup()
 #ifdef STREAM_DEBUG
   STREAM << "Period in setup: " << clock.getPeriod();
   sleep::PrintAndClearStream();
-#endif // #ifdef STREAM_DEBUG®
+#endif // #ifdef STREAM_DEBUG
+
+  Serial.print("day: ");
+  PrintDay(clock.day());
+  Serial.println("");
 
   if (isDay)
   {
@@ -379,23 +395,18 @@ void loop()
 #ifdef RUN_TESTS
   sleep::Test();
 #else // #ifndef RUN_TESTS
-  int reading = digitalRead(BUTTON_PIN);
-  if (reading == HIGH)
-  {
-    SHOW_DEMO = true;
-  }
 
   delay(1000);
   timeClient.update();
   sleep::Clock const clock(timeClient.getEpochTime());
+  int reading = digitalRead(BUTTON_PIN);
+  if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
+  {
+    sleep::Demo();
+  }
   if (++LOOPS > MAX_LOOPS)
   {
     Serial.println("bip");
-    if (SHOW_DEMO and clock.getPeriod() == sleep::Period::Day)
-    {
-      sleep::Demo();
-      SHOW_DEMO = false;
-    }
     LOOPS = 0;
   }
   sleep::LED_STRIP.update(clock);

@@ -23,7 +23,9 @@ struct Interval
 
   Minute duration() const;
 
-  static Interval const & Get(Period const period, Day const day);
+  void print() const;
+
+  static Interval Get(Period const period, Day const day);
 
   /// This should be called when the configuration for the periods is updated
   static void UpdateIntervals();
