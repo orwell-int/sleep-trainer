@@ -40,6 +40,8 @@ class Minute
     Minute operator +(Hour const & rhs) const;
 
     Minute operator -(Hour const & rhs) const;
+
+    Minute operator *(int const factor) const;
   private:
     int m_value;
 };

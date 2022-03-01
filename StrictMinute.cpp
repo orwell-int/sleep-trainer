@@ -1,6 +1,7 @@
 #include "StrictMinute.hpp"
 
 #include "StrictHour.hpp"
+#include "Day.hpp"
 
 namespace sleep
 {
@@ -13,6 +14,7 @@ void Test(TestResult & testResult)
 #endif // #ifdef RUN_TESTS
 
 Minute const StrictMinute::DayDuration(StrictMinute::Max * StrictHour::Max);
+Minute const StrictMinute::WeekDuration(StrictMinute::DayDuration * Week().size());
 
 StrictMinute::StrictMinute(int const value)
   : Minute(value % StrictMinute::Max)

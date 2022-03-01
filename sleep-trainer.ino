@@ -260,7 +260,7 @@ static void Demo()
   sleep::Day const day = clock.day();
 
   // Duration of the demo (real time)
-  unsigned long demoDurationMillis = 72 * 1000;
+  unsigned long demoDurationMillis = 20 * 1000;
 
   unsigned long nowMillis = 0;
   unsigned long deltaMillis = 0;
@@ -389,6 +389,9 @@ void setup()
 }
 
 bool SHOW_DEMO = false;
+unsigned long DEMO_END(0);
+unsigned long DEMO_TIME(0);
+unsigned long DEMO_STEP(5 * sleep::StrictMinute::Seconds);
 
 void loop()
 {
@@ -396,19 +399,54 @@ void loop()
   sleep::Test();
 #else // #ifndef RUN_TESTS
 
-  delay(1000);
-  timeClient.update();
-  sleep::Clock const clock(timeClient.getEpochTime());
-  int reading = digitalRead(BUTTON_PIN);
-  if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
+  if (SHOW_DEMO)
   {
-    sleep::Demo();
+    DEMO_TIME += DEMO_STEP;
+    if (DEMO_TIME > DEMO_END)
+    {
+      SHOW_DEMO = false;
+      Serial.println("Week demo finish");
+    }
+    else
+    {
+      delay(100);
+    }
   }
-  if (++LOOPS > MAX_LOOPS)
+  if (not SHOW_DEMO)
   {
-    Serial.println("bip");
-    LOOPS = 0;
+    delay(1000);
+    timeClient.update();
   }
-  sleep::LED_STRIP.update(clock);
+  sleep::Clock const clock(SHOW_DEMO ? DEMO_TIME : timeClient.getEpochTime());
+  if (not SHOW_DEMO)
+  {
+    int reading = digitalRead(BUTTON_PIN);
+    if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
+    {
+      Serial.println("Week demo start");
+      SHOW_DEMO = true;
+      DEMO_TIME = timeClient.getEpochTime();
+      DEMO_END = DEMO_TIME +
+        (sleep::StrictMinute::WeekDuration
+          * sleep::StrictMinute::Seconds).get();
+      Serial.print("DEMO_TIME = ");
+      Serial.println(DEMO_TIME);
+      Serial.print("DEMO_END  = ");
+      Serial.println(DEMO_END);
+    }
+    if (++LOOPS > MAX_LOOPS)
+    {
+      Serial.println("bip");
+      LOOPS = 0;
+    }
+  }
+  if (sleep::LED_STRIP.update(clock))
+  {
+    Serial.print("Change leds at ");
+    clock.print();
+    Serial.print(" (");
+    clock.getPeriod();
+    Serial.println(")");
+  }
 #endif // #ifndef RUN_TESTS
 }

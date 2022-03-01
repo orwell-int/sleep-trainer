@@ -19,7 +19,9 @@ public:
 #endif // #ifdef RUN_TESTS
 
   static int const Max = 60;
+  static int const Seconds = 60;
   static Minute const DayDuration;
+  static Minute const WeekDuration;
 
   StrictMinute(int const value);
 };
