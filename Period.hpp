@@ -23,4 +23,6 @@ constexpr std::initializer_list< Period > Period_All =
 
 std::ostream & operator <<(std::ostream & stream, Period const & period);
 
+void Print(Period const period);
+
 }

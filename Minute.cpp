@@ -76,6 +76,11 @@ Minute Minute::operator -(Hour const & rhs) const
   return *this - rhs.minutes();
 }
 
+Minute Minute::operator *(int const factor) const
+{
+  return Minute(m_value * factor);
+}
+
 std::ostream & operator <<(std::ostream & stream, Minute const & minute)
 {
   stream << minute.get() << "m";
