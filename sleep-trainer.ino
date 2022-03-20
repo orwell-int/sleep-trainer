@@ -23,7 +23,7 @@
 #include <sstream>
 
 // There are pool servers from 0 to 3 included
-#define NTP_SERVER_A "1.europe.pool.ntp.org"
+#define NTP_SERVER_A "pool.ntp.org"
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, NTP_SERVER_A);
@@ -491,9 +491,12 @@ void loop()
     Serial.print("Change leds at ");
     clock.print();
     Serial.print(" (");
-    clock.getPeriod();
+    sleep::Print(clock.getPeriod());
     Serial.println(")");
-    sleep::PrintClocks();
+    if (not SHOW_DEMO)
+    {
+      sleep::PrintClocks();
+    }
   }
 #endif // #ifndef RUN_TESTS
 }
