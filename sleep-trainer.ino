@@ -11,6 +11,8 @@
 #include "LedArray.hpp"
 #include "LedDescriptor.hpp"
 
+#include <TZ.h> // included in core
+#include <sntp.h> // included in core
 #include <NTPClient.h> // install: NTPClient
 #include <WiFiUdp.h>
 #include <WiFiManager.h> // install: WiFiManager tzapu ; https://github.com/tzapu/WiFiManager
@@ -20,8 +22,11 @@
 #include <compare>
 #include <sstream>
 
+// There are pool servers from 0 to 3 included
+#define NTP_SERVER_A "pool.ntp.org"
+
 WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
+NTPClient timeClient(ntpUDP, NTP_SERVER_A);
 
 //int const NUM_LEDS = 3;
 int const LED_PIN = 2;
@@ -141,6 +146,41 @@ static void SillyTest()
   sleep::PrintAndClearStream();
 }
 #endif // #ifdef STREAM_DEBUG
+
+enum class NTP
+{
+  kCore,
+  kClient
+};
+
+unsigned long getEpoch(NTP const ntp)
+{
+  switch (ntp)
+  {
+    case NTP::kCore:
+    {
+      return sntp_get_current_timestamp();
+    }
+    case NTP::kClient:
+    {
+      return timeClient.getEpochTime();
+    }
+    default:
+    {
+      assert(false);
+    }
+  }
+}
+
+static void PrintClocks()
+{
+  Serial.print("core clock: ");
+  Clock(getEpoch(NTP::kCore)).print();
+  Serial.println("");
+  Serial.print("client clock: ");
+  Clock(getEpoch(NTP::kClient)).print();
+  Serial.println("");
+}
 
 // Day: all dark
 //      .....
@@ -367,6 +407,9 @@ void setup()
     sleep::LED_STRIP.lightLeds(leds);
   }
 
+  //This could even take two additional pool servers
+  configTime(TZ_Europe_Paris, NTP_SERVER_A);
+
   timeClient.update();
   sleep::Clock const clock(timeClient.getEpochTime());
   bool const isDay = clock.getPeriod() == sleep::Period::Day;
@@ -378,6 +421,8 @@ void setup()
   Serial.print("day: ");
   PrintDay(clock.day());
   Serial.println("");
+
+  sleep::PrintClocks();
 
   if (isDay)
   {
@@ -399,6 +444,7 @@ void loop()
   sleep::Test();
 #else // #ifndef RUN_TESTS
 
+  sleep::NTP const ntp = sleep::NTP::kCore;
   if (SHOW_DEMO)
   {
     DEMO_TIME += DEMO_STEP;
@@ -417,7 +463,7 @@ void loop()
     delay(1000);
     timeClient.update();
   }
-  sleep::Clock const clock(SHOW_DEMO ? DEMO_TIME : timeClient.getEpochTime());
+  sleep::Clock const clock(SHOW_DEMO ? DEMO_TIME : sleep::getEpoch(ntp));
   if (not SHOW_DEMO)
   {
     int reading = digitalRead(BUTTON_PIN);
@@ -425,7 +471,7 @@ void loop()
     {
       Serial.println("Week demo start");
       SHOW_DEMO = true;
-      DEMO_TIME = timeClient.getEpochTime();
+      DEMO_TIME = sleep::getEpoch(ntp);
       DEMO_END = DEMO_TIME +
         (sleep::StrictMinute::WeekDuration
           * sleep::StrictMinute::Seconds).get();
@@ -445,8 +491,12 @@ void loop()
     Serial.print("Change leds at ");
     clock.print();
     Serial.print(" (");
-    clock.getPeriod();
+    sleep::Print(clock.getPeriod());
     Serial.println(")");
+    if (not SHOW_DEMO)
+    {
+      sleep::PrintClocks();
+    }
   }
 #endif // #ifndef RUN_TESTS
 }
