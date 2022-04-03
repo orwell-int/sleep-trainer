@@ -22,14 +22,12 @@
 #include <compare>
 #include <sstream>
 
-// There are pool servers from 0 to 3 included
 #define NTP_SERVER_A "pool.ntp.org"
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, NTP_SERVER_A);
 
-//int const NUM_LEDS = 3;
-int const LED_PIN = 2;
+int const LED_PIN = 4;
 int const BUTTON_PIN = 5;
 
 #ifdef STREAM_DEBUG
