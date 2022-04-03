@@ -433,10 +433,13 @@ void setup()
   pinMode(BUTTON_PIN, INPUT);
 }
 
+unsigned long PREVIOUS_TIME = 0;
+unsigned int ERRORS = 0;
+unsigned int const MAX_ERRORS = pow(2, NUM_LEDS + 1) - 1;
 bool SHOW_DEMO = false;
 unsigned long DEMO_END(0);
 unsigned long DEMO_TIME(0);
-unsigned long DEMO_STEP(5 * sleep::StrictMinute::Seconds);
+unsigned long DEMO_STEP(5 * sleep::StrictMinute::Seconds + 1);
 
 void loop()
 {
@@ -463,15 +466,40 @@ void loop()
     delay(1000);
     timeClient.update();
   }
-  sleep::Clock const clock(SHOW_DEMO ? DEMO_TIME : sleep::getEpoch(ntp));
+  unsigned long time = SHOW_DEMO ? DEMO_TIME : sleep::getEpoch(ntp);
+  sleep::Clock const clock(time);
   if (not SHOW_DEMO)
   {
+    if (time < PREVIOUS_TIME)
+    {
+      ++ERRORS;
+      if (ERRORS > MAX_ERRORS)
+      {
+        ERRORS = 1;
+      }
+      if (sleep::Period::Day == clock.getPeriod())
+      {
+        sleep::LedArray leds;
+        int errors = ERRORS;
+        int index = 0;
+        while (errors > 0)
+        {
+          if (errors % 2 == 1)
+          {
+            leds.set(index, sleep::LedStrip::ColourError);
+          }
+          errors /= 2;
+          ++index;
+        }
+        sleep::LED_STRIP.lightLeds(leds);
+      }
+    }
     int reading = digitalRead(BUTTON_PIN);
     if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
     {
       Serial.println("Week demo start");
       SHOW_DEMO = true;
-      DEMO_TIME = sleep::getEpoch(ntp);
+      DEMO_TIME = time;
       DEMO_END = DEMO_TIME +
         (sleep::StrictMinute::WeekDuration
           * sleep::StrictMinute::Seconds).get();
