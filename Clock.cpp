@@ -13,12 +13,12 @@
 namespace sleep
 {
 
-CompactTime NightWeek{19, 0};
-CompactTime DayWeek{5, 45};
+CompactTime NightWeek{18, 0};
+CompactTime DayWeek{4, 45};
 Minute const DurationBeforeNight(30);
 Minute const DurationAfterDay(60);
-CompactTime NightWeekend{19, 0};
-CompactTime DayWeekend{6, 15};
+CompactTime NightWeekend{18, 0};
+CompactTime DayWeekend{5, 15};
 
 // Default values for the configuration are set in Clock::GetConfig
 WeekClockConfig Clock::m_weekClockConfig = {};
