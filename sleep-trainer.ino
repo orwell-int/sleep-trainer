@@ -387,6 +387,8 @@ void setup()
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
   res = wm.autoConnect("AutoConnectAP", "password"); // password protected ap
 
+  timeClient.begin();
+
   if (!res)
   {
     Serial.println("Failed to connect");
@@ -396,7 +398,6 @@ void setup()
   {
     //if you get here you have connected to the WiFi
     Serial.println("connected...yeey :)");
-    timeClient.begin();
 
     leds.fill(sleep::LedStrip::ColourConnected);
     sleep::LED_STRIP.lightLeds(leds);
@@ -493,7 +494,7 @@ void loop()
       }
     }
     int reading = digitalRead(BUTTON_PIN);
-    if (reading == HIGH and clock.getPeriod() == sleep::Period::Day)
+    if (reading == HIGH /*and clock.getPeriod() == sleep::Period::Day*/)
     {
       Serial.println("Week demo start");
       SHOW_DEMO = true;
