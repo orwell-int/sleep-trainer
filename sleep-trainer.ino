@@ -523,7 +523,7 @@ void loop()
     int reading = digitalRead(BUTTON_PIN);
     if (reading == HIGH)
     {
-      DEMO_BUTTON_PRESSES += 100;
+      DEMO_BUTTON_PRESSES += 10;
       Serial.print("DEMO_BUTTON_PRESSES: ");
       Serial.println(DEMO_BUTTON_PRESSES);
       if (DEMO_BUTTON_PRESSES > 300)
