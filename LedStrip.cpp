@@ -45,7 +45,7 @@ uint32_t MakeColor(uint8_t r, uint8_t g, uint8_t b)
   r *= IntensityFactor;
   g *= IntensityFactor;
   b *= IntensityFactor;
-  return Adafruit_NeoPixel::Color(0, 0, 0);
+  return Adafruit_NeoPixel::Color(r, g, b);
 }
 
 uint32_t const LedStrip::Black = MakeColor(0, 0, 0);

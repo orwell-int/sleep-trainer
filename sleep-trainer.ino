@@ -382,6 +382,8 @@ void setup()
   // if empty will auto generate SSID, if password is blank it will be anonymous AP (wm.autoConnect())
   // then goes into a blocking loop awaiting configuration and will return success result
 
+
+  wm.setConfigPortalTimeout(60);
   bool res;
   // res = wm.autoConnect(); // auto generated AP name from chipid
   // res = wm.autoConnect("AutoConnectAP"); // anonymous ap
@@ -439,6 +441,7 @@ bool SHOW_DEMO = false;
 unsigned long DEMO_END(0);
 unsigned long DEMO_TIME(0);
 unsigned long DEMO_STEP(5 * sleep::StrictMinute::Seconds + 1);
+unsigned int DEMO_BUTTON_PRESSES(0);
 
 void loop()
 {
@@ -449,6 +452,7 @@ void loop()
   sleep::NTP const ntp = sleep::NTP::kCore;
   if (SHOW_DEMO)
   {
+    DEMO_BUTTON_PRESSES -= 1;
     DEMO_TIME += DEMO_STEP;
     if (DEMO_TIME > DEMO_END)
     {
@@ -497,6 +501,7 @@ void loop()
     if (reading == HIGH /*and clock.getPeriod() == sleep::Period::Day*/)
     {
       Serial.println("Week demo start");
+      DEMO_BUTTON_PRESSES = 0;
       SHOW_DEMO = true;
       DEMO_TIME = time;
       DEMO_END = DEMO_TIME +
@@ -511,6 +516,20 @@ void loop()
     {
       Serial.println("bip");
       LOOPS = 0;
+    }
+  }
+  else
+  {
+    int reading = digitalRead(BUTTON_PIN);
+    if (reading == HIGH)
+    {
+      DEMO_BUTTON_PRESSES += 100;
+      Serial.print("DEMO_BUTTON_PRESSES: ");
+      Serial.println(DEMO_BUTTON_PRESSES);
+      if (DEMO_BUTTON_PRESSES > 300)
+      {
+        ESP.restart();
+      }
     }
   }
   if (sleep::LED_STRIP.update(clock))
